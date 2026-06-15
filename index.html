@@ -137,8 +137,8 @@ body{font-family:'72',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;bac
       <div class="thumb-col">
         <div class="thumb-label gh">GITHUB <span class="gh-tag">AndreasHirche / hep-workshops</span> <span class="tag-company">Company</span> <a href="https://github.com/AndreasHirche/hep-workshops" target="_blank">↗</a></div>
         <div class="thumb-wrap">
-          <iframe src="https://andreashirche.github.io/hep-workshops/" loading="lazy" title="HEP Dashboard GitHub Pages" sandbox="allow-scripts allow-same-origin"></iframe>
-          <a class="thumb-link" href="https://andreashirche.github.io/hep-workshops/" target="_blank"><span>Open GitHub ↗</span></a>
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#475569;font-size:.8rem;text-align:center;padding:16px">hep-workshops repo reorganized<br>Agendas moved to individual repos</div>
+          <a class="thumb-link" href="https://github.com/AndreasHirche/hep-workshops" target="_blank"><span>View Repo ↗</span></a>
         </div>
       <div class="thumb-ts">&#8635; 2026-05-11 15:55</div>
       </div>
@@ -182,8 +182,8 @@ body{font-family:'72',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;bac
       <div class="thumb-col">
         <div class="thumb-label gh">GITHUB <span class="gh-tag">AndreasHirche / hep-workshops</span> <span class="tag-company">Company</span> <a href="https://github.com/AndreasHirche/hep-workshops" target="_blank">↗</a></div>
         <div class="thumb-wrap">
-          <iframe src="https://andreashirche.github.io/hep-workshops/Agenda_IS_Bellevue_2026/agenda.html" loading="lazy" title="IS Bellevue Agenda GitHub" sandbox="allow-scripts allow-same-origin"></iframe>
-          <a class="thumb-link" href="https://andreashirche.github.io/hep-workshops/Agenda_IS_Bellevue_2026/agenda.html" target="_blank"><span>Open GitHub ↗</span></a>
+          <iframe src="" data-broken="https://andreashirche.github.io/hep-workshops/Agenda_IS_Bellevue_2026/agenda.html" loading="lazy" title="IS Bellevue Agenda GitHub" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="https://andreashirche.github.io/hep-workshops/Agenda_IS_Bellevue_2026/agenda.html" style="opacity:.4;pointer-events:none" target="_blank"><span>Open GitHub ↗</span></a>
         </div>
       <div class="thumb-ts">&#8635; 2026-05-09 00:17</div>
       </div>
@@ -209,8 +209,8 @@ body{font-family:'72',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;bac
       <div class="thumb-col">
         <div class="thumb-label gh">GITHUB <span class="gh-tag">AndreasHirche / hep-workshops</span> <span class="tag-company">Company</span> <a href="https://github.com/AndreasHirche/hep-workshops" target="_blank">↗</a></div>
         <div class="thumb-wrap">
-          <iframe src="https://andreashirche.github.io/hep-workshops/Agenda_Code_Vancouver_2026/agenda.html" loading="lazy" title="Build Code Vancouver Agenda GitHub" sandbox="allow-scripts allow-same-origin"></iframe>
-          <a class="thumb-link" href="https://andreashirche.github.io/hep-workshops/Agenda_Code_Vancouver_2026/agenda.html" target="_blank"><span>Open GitHub ↗</span></a>
+          <iframe src="" data-broken="https://andreashirche.github.io/hep-workshops/Agenda_Code_Vancouver_2026/agenda.html" loading="lazy" title="Build Code Vancouver Agenda GitHub" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="https://andreashirche.github.io/hep-workshops/Agenda_Code_Vancouver_2026/agenda.html" style="opacity:.4;pointer-events:none" target="_blank"><span>Open GitHub ↗</span></a>
         </div>
         <div class="thumb-ts">&#8635; 2026-05-21</div>
       </div>
@@ -236,8 +236,8 @@ body{font-family:'72',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;bac
       <div class="thumb-col">
         <div class="thumb-label gh">GITHUB <span class="gh-tag">DCC / dc-hep</span> <span class="tag-company">Company</span> <a href="https://github.tools.sap/DCC/dc-hep" target="_blank">↗</a></div>
         <div class="thumb-wrap">
-          <iframe src="https://andreashirche.github.io/hep-workshops/Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html" loading="lazy" title="AI Helsinki Agenda GitHub" sandbox="allow-scripts allow-same-origin"></iframe>
-          <a class="thumb-link" href="https://pages.github.tools.sap/DCC/dc-hep/docs/Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html" target="_blank"><span>Open GitHub ↗</span></a>
+          <iframe src="" data-broken="https://andreashirche.github.io/hep-workshops/Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html" loading="lazy" title="AI Helsinki Agenda GitHub" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="https://pages.github.tools.sap/DCC/dc-hep/Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html" target="_blank"><span>Open SAP Internal ↗</span></a>
         </div>
       <div class="thumb-ts">&#8635; 2026-05-11 16:52</div>
       </div>
@@ -423,6 +423,15 @@ body{font-family:'72',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;bac
 <script>
 // Scale iframes to fit their containers
 // Mark local-only iframes (broken outside file:// context)
+// Replace broken iframes with placeholder
+document.querySelectorAll('[data-broken]').forEach(function(iframe) {
+  var ph = document.createElement('div');
+  ph.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:.75rem;text-align:center;padding:12px;background:#1e0a0a';
+  ph.innerHTML = '⚠️ Not available<br><span style="color:#64748b;font-size:.65rem">hep-workshops repo was reorganized</span>';
+  iframe.parentNode.insertBefore(ph, iframe);
+  iframe.style.display = 'none';
+});
+
 document.querySelectorAll('.thumb-wrap iframe').forEach(function(iframe) {
   var src = iframe.getAttribute('src') || '';
   if (src.startsWith('../') || src.startsWith('file:')) {
