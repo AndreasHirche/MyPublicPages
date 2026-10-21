@@ -391,7 +391,7 @@ function buildCard(c){
   } else {
     div.innerHTML='<div class="rc-img"><span class="rph">'+c.ph+'</span></div>';
   }
-  div.innerHTML+='<div class="rc-body"><div class="rc-name">'+c.flag+' '+c.name+'</div><div class="rc-robot">'+c.robot+'</div><div class="rc-tags"><span class="tag '+st.cls+'">'+st.icon+' '+st.label+'</span>'+tBadges+'</div><div class="rc-city">📍 '+c.city+'</div></div>';
+  div.innerHTML+='<div class="rc-body"><div class="rc-name">'+c.flag+' '+c.name+'</div><div class="rc-robot">'+c.robot+'</div><div class="rc-tags"><span class="tag '+st.cls+'">'+st.icon+' '+st.label+'</span>'+tBadges+'</div><div class="rc-city">'+c.flag+' '+c.city+'</div></div>';
   div.addEventListener('click',function(){selectCompany(c,true);});
   return div;
 }
@@ -411,7 +411,7 @@ function showDetail(c){
   db.innerHTML='<div class="d-top"><div><div class="d-name">'+c.name+'</div><div class="d-robot">'+c.robot+'</div></div><button class="d-close" onclick="closeDetail()">✕</button></div>'
     +'<div class="d-tags"><span class="tag '+rCls+'">'+c.flag+' '+c.city+'</span><span class="tag '+st.cls+'">'+st.icon+' '+st.label+'</span>'+tBadges+'</div>'
     +'<div class="d-desc">'+c.desc+'</div>'
-    +'<div class="d-facts"><div class="fact"><div class="fact-l">Gegründet</div><div class="fact-v">'+c.founded+'</div></div><div class="fact"><div class="fact-l">Mitarbeiter</div><div class="fact-v">'+c.employees+'</div></div></div>'
+    +'<div class="d-facts"><div class="fact"><div class="fact-l">Gegründet</div><div class="fact-v">'+c.founded+'</div></div><div class="fact"><div class="fact-l">Mitarbeiter</div><div class="fact-v">'+c.employees+'</div></div><div class="fact" style="grid-column:1/-1"><div class="fact-l">Standort</div><div class="fact-v">'+c.flag+' '+c.city+'</div></div></div>'
     +'<div class="d-fund"><strong>Finanzierung:</strong> '+c.funding+'</div>'
     +(c.note?'<div class="d-note">'+c.note+'</div>':'')
     +'<a class="d-link" href="'+c.url+'" target="_blank" rel="noopener">Website ↗</a>';
