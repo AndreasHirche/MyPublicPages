@@ -261,7 +261,7 @@ var CO=[
    desc:"Deutschlands führendes Humanoid-Startup. 4NE-1: zweibeiniger Humanoid für Industrie & Haushalt. MAiRA & LARA: kollaborative Arme.",
    note:"4NE-1 Mini & Quadruped auf CES 2026",url:"https://neura-robotics.com"},
   {id:1,name:"Agile Robots SE",robot:"Diana 7 · Humanoid",region:"EU",flag:"🇩🇪",city:"München",lat:48.158,lng:11.598,
-   img:"https://www.agile-robots.com/media/_processed_/d/4/csm_AgileRobots-Diana-7-Header-Mobile_fe76e6e464.jpg",ph:"⚙️",stage:"both",types:["arm","humanoid"],
+   img:"https://www.agile-robots.com/media/_processed_/d/4/csm_AgileRobots-Diana-7-Header-Mobile_fe76e6e464.jpg",pos:"center 70%",ph:"⚙️",stage:"both",types:["arm","humanoid"],
    founded:"2018",employees:"k.A.",funding:"$220 Mio. (SoftBank)",
    desc:"Münchner Unicorn. Diana 7: 7-Achs-Arm in Serie. Erster industrieller Humanoid Nov 2025, Hannover Messe 2026.",
    note:"Tochter idealworks für AMR-Intralogistik",url:"https://agile-robots.com"},
@@ -271,7 +271,7 @@ var CO=[
    desc:"ETH-Spinoff. ANYmal D: autonomer Vierbein-Inspektionsroboter für Öl & Gas, Chemie, Bergbau. IEEE Innovation Award 2022.",
    note:"Quadruped — kein Humanoid",url:"https://anybotics.com"},
   {id:3,name:"1X Technologies",robot:"NEO · EVE",region:"EU",flag:"🇳🇴",city:"Moss",lat:59.435,lng:10.658,
-   img:"https://cdn.sanity.io/images/qka6yvsc/production/ee557c733ef09cd4628692339331fa5abc79239b-1069x2293.webp",ph:"🦾",stage:"production",types:["humanoid"],
+   img:"https://cdn.sanity.io/images/qka6yvsc/production/ee557c733ef09cd4628692339331fa5abc79239b-1069x2293.webp",pos:"center 37%",ph:"🦾",stage:"production",types:["humanoid"],
    founded:"2014",employees:"k.A.",funding:"$100 Mio. (OpenAI, EQT)",
    desc:"OpenAI-backed. NEO: zweibeiniger Heim-Humanoid, $20k/$499 Abo, 25 DOF Hände, Lieferung 2026. EVE: radbasiert für Industrie.",
    note:"HQ auch in Palo Alto, CA",url:"https://1x.tech"},
@@ -316,7 +316,7 @@ var CO=[
    desc:"Ex-Huawei. A2: 1,75 m, 55 kg, fädelt Nadeln ein. X2: Flaggschiff, MWC 2026. G2: Industriearm. X1 Open Source.",
    note:">1.000 Einheiten Jan 2025",url:"https://agibot.com"},
   {id:12,name:"Unitree Robotics",robot:"H1 · G1 · Go2 · B2",region:"CN",flag:"🇨🇳",city:"Hangzhou",lat:30.274,lng:120.155,
-   img:"robots/unitree.jpg",ph:"🐾",stage:"production",types:["humanoid","quadruped"],
+   img:"robots/unitree.jpg",pos:"center 8%",ph:"🐾",stage:"production",types:["humanoid","quadruped"],
    founded:"2016",employees:"k.A.",funding:"ca. $100 Mio.",
    desc:"Weltweiter Marktführer günstiger Roboter. Go2: ab $1.600. H1: Humanoid $90k. G1: Humanoid $16k — disruptiert den Markt durch extrem niedrige Preise.",
    note:"Go1/Go2 weltweit meistverkauft",url:"https://unitree.com"},
@@ -341,7 +341,7 @@ var CO=[
    desc:"GR-1: erster kommerziell erhältlicher Humanoid Chinas (2023). 1,65 m, 55 kg, 23 DOF, ~$58k. Ursprung: Rehab-Exoskelette.",
    note:"Auch Rehabilitations-Exoskelette",url:"https://fftai.com"},
   {id:17,name:"Enchanted Tools",robot:"Mirokaï",region:"EU",flag:"🇫🇷",city:"Paris",lat:48.857,lng:2.352,
-   img:"robots/mirokai.jpg",ph:"🎭",stage:"research",types:["humanoid","mobile"],
+   img:"robots/mirokai.jpg",pos:"center 15%",ph:"🎭",stage:"research",types:["humanoid","mobile"],
    founded:"2021",employees:"~100",funding:"€25 Mio. (BPI France)",
    desc:"Mirokaï: expressiver Rollhumanoid für Pflege & Gesundheit. Menschlicher Oberkörper auf Rädern. Fokus emotionale Interaktion, Altenpflege.",
    note:"Rollhumanoid — kein Zweibeingang",url:"https://enchanted.tools"},
@@ -393,7 +393,7 @@ function buildCard(c){
   div.className='rc '+c.region.toLowerCase()+'-card';
   div.id='card-'+c.id;
   if(c.img){
-    div.innerHTML='<div class="rc-img"><img src="'+c.img+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'" alt=""><div style="display:none;width:100%;height:100%;align-items:center;justify-content:center"><span class="rph">'+c.ph+'</span></div></div>';
+    div.innerHTML='<div class="rc-img"><img src="'+c.img+'" style="object-position:'+(c.pos||'top center')+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'" alt=""><div style="display:none;width:100%;height:100%;align-items:center;justify-content:center"><span class="rph">'+c.ph+'</span></div></div>';
   } else {
     div.innerHTML='<div class="rc-img"><span class="rph">'+c.ph+'</span></div>';
   }
@@ -412,7 +412,7 @@ function showDetail(c){
   var rCls='tag-'+c.region.toLowerCase();
   var tBadges=c.types.map(function(t){var m=TM[t];return m?'<span class="tag tag-type">'+m.icon+' '+m.label+'</span>':'';}).join('');
   iw.innerHTML=c.img
-    ?'<img class="d-img" src="'+c.img+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'" alt=""><div class="d-img-ph" style="display:none">'+c.ph+'</div>'
+    ?'<img class="d-img" src="'+c.img+'" style="object-position:'+(c.pos||'top center')+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'" alt=""><div class="d-img-ph" style="display:none">'+c.ph+'</div>'
     :'<div class="d-img-ph">'+c.ph+'</div>';
   db.innerHTML='<div class="d-top"><div><div class="d-name">'+c.name+'</div><div class="d-robot">'+c.robot+'</div></div><button class="d-close" onclick="closeDetail()">✕</button></div>'
     +'<div class="d-tags"><span class="tag '+rCls+'">'+flagImg(c.flag)+c.city+'</span><span class="tag '+st.cls+'">'+st.icon+' '+st.label+'</span>'+tBadges+'</div>'
