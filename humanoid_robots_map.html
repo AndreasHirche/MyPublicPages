@@ -397,7 +397,7 @@ function buildCard(c){
   } else {
     div.innerHTML='<div class="rc-img"><span class="rph">'+c.ph+'</span></div>';
   }
-  div.innerHTML+='<div class="rc-body"><div class="rc-name">'+flagImg(c.flag)+c.name+'</div><div class="rc-robot">'+c.robot+'</div><div class="rc-tags"><span class="tag '+st.cls+'">'+st.icon+' '+st.label+'</span>'+tBadges+'</div><div class="rc-city">'+flagImg(c.flag)+c.city+'</div></div>';
+  div.innerHTML+='<div class="rc-body"><div class="rc-name">'+c.name+'</div><div class="rc-robot">'+c.robot+'</div><div class="rc-tags"><span class="tag '+st.cls+'">'+st.icon+' '+st.label+'</span>'+tBadges+'</div><div class="rc-city">'+flagImg(c.flag)+c.city+'</div></div>';
   div.addEventListener('click',function(){selectCompany(c,true);});
   return div;
 }
