@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Humanoid Robots — Equal Earth Map 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#06090f;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif}
+.topbar{background:#050c18;border-bottom:1px solid #1a2744;padding:7px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar h1{font-size:.9rem;font-weight:800;background:linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap}
+.topbar .proj-note{font-size:.6rem;color:#334155;margin-left:auto;white-space:nowrap}
+.filterbar{background:#04090f;border-bottom:1px solid #1a2744;padding:4px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;overflow-x:auto;white-space:nowrap}
+.filterbar::-webkit-scrollbar{height:3px}.filterbar::-webkit-scrollbar-thumb{background:#1a2744}
+.fg{display:inline-flex;align-items:center;gap:3px;flex-shrink:0}
+.fg-label{font-size:.58rem;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.f-btn{padding:2px 8px;border-radius:10px;border:1.5px solid #1a2744;background:#0d1b2e;color:#64748b;font-size:.62rem;font-weight:600;cursor:pointer;transition:all .12s;white-space:nowrap;user-select:none}
+.f-btn:hover{border-color:#3b82f6;color:#60a5fa}
+.f-btn.r-all.active,.f-btn.r-us.active{background:#1e3a5f;border-color:#3b82f6;color:#93c5fd}
+.f-btn.r-eu.active{background:#052e16;border-color:#10b981;color:#6ee7b7}
+.f-btn.r-cn.active{background:#2d0a0a;border-color:#ef4444;color:#fca5a5}
+.f-btn.s-prod.active{background:#052e16;border-color:#16a34a;color:#4ade80}
+.f-btn.s-res.active{background:#2d1a00;border-color:#d97706;color:#fbbf24}
+.f-btn.s-both.active{background:#1a1800;border-color:#a3a316;color:#d4d44a}
+.f-btn.t-hum.active{background:#0d1f3c;border-color:#60a5fa;color:#bfdbfe}
+.f-btn.t-quad.active{background:#1a0d2e;border-color:#a78bfa;color:#ddd6fe}
+.f-btn.t-arm.active{background:#1a0a2e;border-color:#f472b6;color:#fbcfe8}
+.f-btn.t-mob.active{background:#0a1a1a;border-color:#2dd4bf;color:#99f6e4}
+.f-btn.t-plat.active{background:#1a1a1a;border-color:#94a3b8;color:#e2e8f0}
+.sep{width:1px;height:16px;background:#1a2744;flex-shrink:0}
+.body-wrap{display:flex;flex-direction:column;height:100%}
+.main{display:flex;flex:1;min-height:0;overflow:hidden}
+
+/* Map */
+#map-panel{flex:1;position:relative;min-width:0;overflow:hidden;background:#04080f}
+#map-svg{position:absolute;top:0;left:0;width:100%;height:100%}
+.sphere{fill:#04080f}
+.graticule{fill:none;stroke:#0d1a2e;stroke-width:.4px;vector-effect:non-scaling-stroke}
+.country{fill:#0d1c30;stroke:#162336;stroke-width:.5px;cursor:default;vector-effect:non-scaling-stroke}
+.country:hover{fill:#122038}
+.border{fill:none;stroke:#1a2d44;stroke-width:.4px;vector-effect:non-scaling-stroke}
+.country-label{fill:#4a7eb5;text-anchor:middle;dominant-baseline:central;pointer-events:none;font-family:'Segoe UI',system-ui;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.city-dot{fill:#3a6a9a;pointer-events:none;vector-effect:non-scaling-stroke}
+.city-label{fill:#3a78a8;dominant-baseline:central;pointer-events:none;font-family:'Segoe UI',system-ui}
+
+/* Map overlay (markers sit here) */
+#map-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden}
+
+/* Markers */
+.mwrap{position:absolute;transform:translate(-50%,-50%);pointer-events:all;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;transition:transform .15s}
+.mwrap:hover,.mwrap.sel{transform:translate(-50%,-50%) scale(1.25)}
+.mcircle{width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid #10b981;box-shadow:0 0 0 2px #052e16,0 2px 10px rgba(0,0,0,.7);position:relative;background:#04090f;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mwrap.us .mcircle{border-color:#3b82f6;box-shadow:0 0 0 2px #1e3a5f,0 2px 10px rgba(0,0,0,.7)}
+.mwrap.cn .mcircle{border-color:#ef4444;box-shadow:0 0 0 2px #2d0a0a,0 2px 10px rgba(0,0,0,.7)}
+.mwrap.ref .mcircle{width:30px;height:30px;border-color:#38bdf8;box-shadow:0 0 0 2px #0c1a2e,0 2px 8px rgba(0,0,0,.6);font-size:.85rem}
+.mcircle img{width:100%;height:100%;object-fit:cover;display:block}
+.mcircle .mph{font-size:1.2rem}
+.sdot{position:absolute;bottom:0;left:0;width:13px;height:13px;border-radius:50%;border:2px solid #06090f}
+.sdot.prod{background:#16a34a}.sdot.res{background:#d97706}.sdot.both{background:linear-gradient(135deg,#16a34a 50%,#d97706 50%)}
+.tpills{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;max-width:72px}
+.tp{font-size:13px;background:#08111ef0;border:1px solid #1a2744;border-radius:5px;padding:2px 4px;color:#64748b;line-height:1;cursor:default;transition:transform .1s}
+.tp:hover{transform:scale(1.2)}
+.tp.hum{border-color:#3b82f666;color:#93c5fd}.tp.quad{border-color:#a78bfa66;color:#c4b5fd}
+.tp.arm{border-color:#f472b666;color:#f9a8d4}.tp.mob{border-color:#2dd4bf66;color:#5eead4}.tp.plat{border-color:#94a3b866;color:#cbd5e1}
+.ref-label{font-size:8px;color:#38bdf8;background:#06090fcc;padding:1px 4px;border-radius:3px;white-space:nowrap;border:1px solid #1a2744;margin-top:1px}
+
+/* Zoom controls */
+.zoom-btns{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:2px;z-index:200}
+.zbtn{width:28px;height:28px;background:#08111e;border:1px solid #1a2744;color:#64748b;font-size:1rem;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.zbtn:hover{background:#0d1f35;color:#60a5fa;border-color:#3b82f6}
+
+/* Detail panel */
+.detail{position:absolute;top:10px;left:50px;width:288px;background:#08111ef5;border:1px solid #1a2744;border-radius:11px;z-index:300;display:none;flex-direction:column;max-height:calc(100% - 20px);overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.8)}
+.detail.open{display:flex}
+.d-img{width:100%;height:145px;object-fit:cover;border-radius:11px 11px 0 0;display:block}
+.d-img-ph{width:100%;height:145px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;background:linear-gradient(135deg,#040d1a,#0d1b2e);border-radius:11px 11px 0 0}
+.d-body{padding:12px;display:flex;flex-direction:column;gap:8px}
+.d-top{display:flex;justify-content:space-between;align-items:flex-start}
+.d-name{font-size:.88rem;font-weight:800;color:#e2e8f0}
+.d-robot{font-size:.67rem;color:#94a3b8;margin-top:1px}
+.d-close{cursor:pointer;color:#475569;font-size:.8rem;padding:2px 5px;border:1px solid #1a2744;border-radius:5px;background:#040d1a;flex-shrink:0;margin-left:6px}
+.d-close:hover{color:#e2e8f0}
+.d-tags{display:flex;gap:3px;flex-wrap:wrap}
+.d-desc{font-size:.76rem;color:#94a3b8;line-height:1.5}
+.d-facts{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.fact{background:#040d1a;border-radius:6px;padding:5px 7px}
+.fact-l{font-size:.52rem;text-transform:uppercase;letter-spacing:.05em;color:#475569;margin-bottom:1px}
+.fact-v{font-size:.69rem;color:#cbd5e1;font-weight:600}
+.d-fund{font-size:.68rem;background:#0d1f35;border:1px solid #1a3a5f;border-radius:6px;padding:5px 8px;color:#60a5fa}
+.d-note{font-size:.63rem;color:#475569;font-style:italic}
+.d-link{display:inline-block;padding:5px 12px;border:1px solid #1a2744;border-radius:6px;font-size:.68rem;color:#60a5fa;text-decoration:none}
+.d-link:hover{background:#0d1f35;border-color:#3b82f6}
+
+/* Legend */
+.legend{position:absolute;bottom:10px;left:50px;z-index:200;background:#08111ef0;border:1px solid #1a2744;border-radius:8px;padding:8px 11px;font-size:.63rem;color:#94a3b8;line-height:1.7}
+.lg-sec{font-size:.52rem;text-transform:uppercase;letter-spacing:.07em;color:#334155;margin-top:4px}
+.lg-sec:first-child{margin-top:0}
+.li{display:flex;align-items:center;gap:5px}
+.ld{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ls{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+
+/* Card list */
+.card-list{width:330px;overflow-y:auto;background:#08111e;border-left:1px solid #1a2744;flex-shrink:0;display:flex;flex-direction:column}
+.card-list::-webkit-scrollbar{width:3px}.card-list::-webkit-scrollbar-thumb{background:#1a2744}
+.cl-count{padding:6px 12px;font-size:.62rem;color:#334155;border-bottom:1px solid #1a2744;background:#04090f;flex-shrink:0}
+.rc{display:flex;border-bottom:1px solid #0d1625;cursor:pointer;transition:background .12s;min-height:78px}
+.rc:hover{background:#0d1625}.rc.active{background:#0d1f35;border-left:3px solid #3b82f6}
+.rc.active.eu-card{border-left-color:#10b981}.rc.active.cn-card{border-left-color:#ef4444}
+.rc-img{width:70px;height:78px;flex-shrink:0;overflow:hidden;background:#04090f;display:flex;align-items:center;justify-content:center}
+.rc-img img{width:100%;height:100%;object-fit:cover;display:block}
+.rph{font-size:1.7rem;color:#1e2d4a}
+.rc-body{flex:1;padding:7px 9px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.rc-name{font-size:.76rem;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-robot{font-size:.63rem;color:#60a5fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-tags{display:flex;gap:2px;flex-wrap:wrap}
+.tag{font-size:.55rem;padding:1px 4px;border-radius:4px;font-weight:600;border:1px solid transparent;white-space:nowrap}
+.tag-eu{background:#052e16;color:#6ee7b7;border-color:#10b98144}.tag-us{background:#1e3a5f;color:#93c5fd;border-color:#3b82f644}
+.tag-cn{background:#2d0a0a;color:#fca5a5;border-color:#ef444444}.tag-prod{background:#052e16;color:#4ade80;border-color:#16a34a44}
+.tag-res{background:#2d1a00;color:#fbbf24;border-color:#d9770644}.tag-both{background:#1a1800;color:#d4d44a;border-color:#a3a31644}
+.tag-type{background:#0d1b2e;color:#94a3b8;border-color:#1a2744}
+.rc-city{font-size:.6rem;color:#475569;margin-top:auto}
+
+/* Tooltip */
+.mtooltip{position:absolute;background:#08111e;border:1px solid #1a2744;border-radius:6px;padding:5px 8px;font-size:.7rem;color:#e2e8f0;pointer-events:none;z-index:400;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.8);display:none}
+.mtooltip.show{display:block}
+.mtt-name{font-weight:700;margin-bottom:1px}
+.mtt-robot{color:#60a5fa;font-size:.63rem}
+</style>
+</head>
+<body>
+<div class="body-wrap">
+<div class="topbar">
+  <h1>🤖 Humanoid &amp; Inspection Robots — Equal Earth 2026</h1>
+  <span class="proj-note">Equal Earth Projektion · maßstabsgetreue Länderflächen</span>
+</div>
+<div class="filterbar">
+  <div class="fg">
+    <span class="fg-label">Region</span>
+    <div class="f-btn r-all active" onclick="sf('region','all',this)">Alle</div>
+    <div class="f-btn r-eu" onclick="sf('region','EU',this)">🇪🇺 Europa</div>
+    <div class="f-btn r-us" onclick="sf('region','US',this)">🇺🇸 USA</div>
+    <div class="f-btn r-cn" onclick="sf('region','CN',this)">🇨🇳 China</div>
+  </div>
+  <div class="sep"></div>
+  <div class="fg">
+    <span class="fg-label">Stufe</span>
+    <div class="f-btn r-all active" onclick="sf('stage','all',this)">Alle</div>
+    <div class="f-btn s-prod" onclick="sf('stage','production',this)">🏭 Produktion</div>
+    <div class="f-btn s-res" onclick="sf('stage','research',this)">🔬 Forschung</div>
+    <div class="f-btn s-both" onclick="sf('stage','both',this)">🔬🏭 Beides</div>
+  </div>
+  <div class="sep"></div>
+  <div class="fg">
+    <span class="fg-label">Form</span>
+    <div class="f-btn r-all active" onclick="sf('type','all',this)">Alle</div>
+    <div class="f-btn t-hum" onclick="sf('type','humanoid',this)">🚶 Humanoid</div>
+    <div class="f-btn t-quad" onclick="sf('type','quadruped',this)">🐾 Quadruped</div>
+    <div class="f-btn t-arm" onclick="sf('type','arm',this)">🦾 Arm</div>
+    <div class="f-btn t-mob" onclick="sf('type','mobile',this)">🛞 Mobil</div>
+    <div class="f-btn t-plat" onclick="sf('type','platform',this)">💻 Plattform</div>
+  </div>
+</div>
+<div class="main">
+  <div id="map-panel">
+    <svg id="map-svg"></svg>
+    <div id="map-overlay"></div>
+    <div class="mtooltip" id="tooltip"><div class="mtt-name" id="tt-name"></div><div class="mtt-robot" id="tt-robot"></div></div>
+    <div class="zoom-btns">
+      <button class="zbtn" onclick="mapZoomIn()">+</button>
+      <button class="zbtn" onclick="mapZoomOut()">−</button>
+      <button class="zbtn" onclick="mapReset()" title="Reset" style="font-size:.6rem">⌂</button>
+    </div>
+    <div class="detail" id="detail">
+      <div id="d-imgwrap"></div>
+      <div class="d-body" id="d-body"></div>
+    </div>
+    <div class="legend">
+      <div class="lg-sec">Region</div>
+      <div class="li"><div class="ld" style="background:#10b981"></div> Europa</div>
+      <div class="li"><div class="ld" style="background:#3b82f6"></div> USA</div>
+      <div class="li"><div class="ld" style="background:#ef4444"></div> China</div>
+      <div class="lg-sec">Stufe</div>
+      <div class="li"><div class="ls" style="background:#16a34a"></div> 🏭 Produktion</div>
+      <div class="li"><div class="ls" style="background:#d97706"></div> 🔬 Forschung</div>
+      <div class="li"><div class="ls" style="background:linear-gradient(135deg,#16a34a 50%,#d97706 50%)"></div> Beides</div>
+    </div>
+  </div>
+  <div class="card-list" id="card-list">
+    <div class="cl-count" id="cl-count">Lade…</div>
+  </div>
+</div>
+</div>
+
+<script>
+var TM={humanoid:{cls:'hum',icon:'🚶',label:'Humanoid'},quadruped:{cls:'quad',icon:'🐾',label:'Quadruped'},arm:{cls:'arm',icon:'🦾',label:'Arm'},mobile:{cls:'mob',icon:'🛞',label:'Mobil'},platform:{cls:'plat',icon:'💻',label:'Plattform'}};
+var SM={production:{cls:'tag-prod',icon:'🏭',label:'Produktion'},research:{cls:'tag-res',icon:'🔬',label:'Forschung'},both:{cls:'tag-both',icon:'🔬🏭',label:'Fors. + Prod.'}};
+
+// ── Country names (ISO 3166-1 numeric → name) ─────────────────────────────────
+var COUNTRY_NAMES={4:'Afghanistan',8:'Albanien',12:'Algerien',24:'Angola',32:'Argentinien',36:'Australien',40:'Österreich',50:'Bangladesch',56:'Belgien',68:'Bolivien',76:'Brasilien',100:'Bulgarien',116:'Kambodscha',124:'Kanada',144:'Sri Lanka',152:'Chile',156:'China',170:'Kolumbien',188:'Costa Rica',191:'Kroatien',203:'Tschechien',208:'Dänemark',218:'Ecuador',818:'Ägypten',231:'Äthiopien',246:'Finnland',250:'Frankreich',276:'Deutschland',288:'Ghana',300:'Griechenland',348:'Ungarn',356:'Indien',360:'Indonesien',364:'Iran',368:'Irak',372:'Irland',376:'Israel',380:'Italien',392:'Japan',404:'Kenia',410:'Südkorea',408:'Nordkorea',428:'Lettland',440:'Litauen',504:'Marokko',484:'Mexiko',496:'Mongolei',508:'Mosambik',528:'Niederlande',554:'Neuseeland',566:'Nigeria',578:'Norwegen',586:'Pakistan',604:'Peru',608:'Philippinen',616:'Polen',620:'Portugal',642:'Rumänien',643:'Russland',682:'Saudi-Arabien',703:'Slowakei',710:'Südafrika',724:'Spanien',752:'Schweden',756:'Schweiz',764:'Thailand',792:'Türkei',800:'Uganda',804:'Ukraine',826:'UK',840:'USA',858:'Uruguay',862:'Venezuela',704:'Vietnam',894:'Sambia',716:'Simbabwe',233:'Estland',470:'Malta',48:'Bahrain',50:'Bangladesch',458:'Malaysia',702:'Singapur',320:'Guatemala',340:'Honduras',484:'Mexiko',591:'Panama',662:'St. Lucia',214:'Dom. Rep.'};
+
+// ── Cities ────────────────────────────────────────────────────────────────────
+var CITIES=[
+  // Europa
+  {n:'Berlin',lat:52.520,lng:13.405},{n:'München',lat:48.137,lng:11.576},{n:'Hamburg',lat:53.551,lng:9.994},
+  {n:'Stuttgart',lat:48.775,lng:9.182},{n:'Frankfurt',lat:50.110,lng:8.682},{n:'Köln',lat:50.938,lng:6.960},
+  {n:'Walldorf',lat:49.305,lng:8.645},{n:'Metzingen',lat:48.536,lng:9.283},
+  {n:'Paris',lat:48.857,lng:2.352},{n:'Lyon',lat:45.750,lng:4.850},{n:'London',lat:51.507,lng:-0.128},
+  {n:'Madrid',lat:40.416,lng:-3.703},{n:'Barcelona',lat:41.385,lng:2.175},
+  {n:'Rom',lat:41.900,lng:12.500},{n:'Mailand',lat:45.465,lng:9.186},
+  {n:'Amsterdam',lat:52.377,lng:4.896},{n:'Brüssel',lat:50.850,lng:4.351},
+  {n:'Wien',lat:48.208,lng:16.373},{n:'Zürich',lat:47.376,lng:8.541},{n:'Bern',lat:46.948,lng:7.449},
+  {n:'Stockholm',lat:59.330,lng:18.068},{n:'Oslo',lat:59.913,lng:10.739},{n:'Moss',lat:59.435,lng:10.658},
+  {n:'Kopenhagen',lat:55.676,lng:12.568},{n:'Helsinki',lat:60.169,lng:24.935},
+  {n:'Warschau',lat:52.229,lng:21.012},{n:'Prag',lat:50.075,lng:14.437},{n:'Budapest',lat:47.498,lng:19.040},
+  {n:'Bukarest',lat:44.439,lng:26.097},{n:'Kiew',lat:50.450,lng:30.523},{n:'Minsk',lat:53.904,lng:27.562},
+  {n:'Moskau',lat:55.751,lng:37.618},{n:'St. Petersburg',lat:59.938,lng:30.315},
+  {n:'Istanbul',lat:41.015,lng:28.979},{n:'Ankara',lat:39.921,lng:32.854},
+  {n:'Athen',lat:37.979,lng:23.728},{n:'Lissabon',lat:38.722,lng:-9.139},
+  {n:'Cornwall',lat:50.300,lng:-5.050},
+  // USA
+  {n:'New York',lat:40.713,lng:-74.006},{n:'Los Angeles',lat:34.052,lng:-118.244},
+  {n:'Chicago',lat:41.878,lng:-87.630},{n:'Houston',lat:29.760,lng:-95.370},
+  {n:'San Francisco',lat:37.774,lng:-122.419},{n:'San Jose',lat:37.338,lng:-121.886},
+  {n:'Seattle',lat:47.608,lng:-122.335},{n:'Boston',lat:42.360,lng:-71.059},
+  {n:'Waltham',lat:42.377,lng:-71.236},{n:'Austin',lat:30.267,lng:-97.743},
+  {n:'Dallas',lat:32.778,lng:-96.797},{n:'Miami',lat:25.775,lng:-80.209},
+  {n:'Denver',lat:39.739,lng:-104.984},{n:'Portland',lat:45.523,lng:-122.676},
+  {n:'Salem',lat:44.942,lng:-123.035},{n:'Washington',lat:38.895,lng:-77.037},
+  {n:'Atlanta',lat:33.749,lng:-84.388},{n:'Phoenix',lat:33.449,lng:-112.074},
+  // China
+  {n:'Peking',lat:39.916,lng:116.397},{n:'Shanghai',lat:31.230,lng:121.474},
+  {n:'Shenzhen',lat:22.543,lng:114.057},{n:'Guangzhou',lat:23.130,lng:113.264},
+  {n:'Hangzhou',lat:30.274,lng:120.155},{n:'Chengdu',lat:30.657,lng:104.066},
+  {n:'Wuhan',lat:30.593,lng:114.305},{n:'Tianjin',lat:39.130,lng:117.200},
+  {n:'Xi\'an',lat:34.341,lng:108.939},{n:'Nanjing',lat:32.060,lng:118.796},
+  {n:'Hongkong',lat:22.319,lng:114.170},{n:'Taipeh',lat:25.047,lng:121.514},
+  // Asien
+  {n:'Tokio',lat:35.690,lng:139.692},{n:'Osaka',lat:34.693,lng:135.502},
+  {n:'Seoul',lat:37.566,lng:126.978},{n:'Mumbai',lat:19.076,lng:72.878},
+  {n:'Delhi',lat:28.610,lng:77.209},{n:'Bangalore',lat:12.972,lng:77.595},
+  {n:'Bangkok',lat:13.752,lng:100.493},{n:'Jakarta',lat:-6.211,lng:106.845},
+  {n:'Singapur',lat:1.352,lng:103.819},{n:'Kuala Lumpur',lat:3.147,lng:101.697},
+  {n:'Dubai',lat:25.204,lng:55.270},{n:'Riad',lat:24.687,lng:46.722},
+  {n:'Teheran',lat:35.695,lng:51.423},{n:'Karachi',lat:24.861,lng:67.011},
+  // Afrika / Ozeanien / Amerika
+  {n:'Kairo',lat:30.044,lng:31.236},{n:'Lagos',lat:6.453,lng:3.396},
+  {n:'Nairobi',lat:-1.292,lng:36.822},{n:'Johannesburg',lat:-26.200,lng:28.044},
+  {n:'Kapstadt',lat:-33.925,lng:18.424},{n:'Casablanca',lat:33.593,lng:-7.620},
+  {n:'São Paulo',lat:-23.549,lng:-46.633},{n:'Rio de Janeiro',lat:-22.906,lng:-43.173},
+  {n:'Buenos Aires',lat:-34.603,lng:-58.382},{n:'Lima',lat:-12.046,lng:-77.043},
+  {n:'Bogotá',lat:4.711,lng:-74.072},{n:'Santiago',lat:-33.457,lng:-70.648},
+  {n:'Mexiko-Stadt',lat:19.432,lng:-99.133},{n:'Toronto',lat:43.653,lng:-79.383},
+  {n:'Vancouver',lat:49.246,lng:-123.116},{n:'Montréal',lat:45.509,lng:-73.554},
+  {n:'Sydney',lat:-33.868,lng:151.207},{n:'Melbourne',lat:-37.814,lng:144.963}
+];
+
+var CO=[
+  {id:0,name:"Neura Robotics",robot:"4NE-1 · MAiRA · LARA · MAV",region:"EU",flag:"🇩🇪",city:"Metzingen, DE",lat:48.536,lng:9.283,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Neura_robotics_logo.svg/600px-Neura_robotics_logo.svg.png",ph:"🤖",stage:"production",types:["humanoid","arm","mobile"],
+   founded:"2019",employees:">1.100",funding:"€1,4 Mrd. Series C (2026)",
+   desc:"Deutschlands führendes Humanoid-Startup. 4NE-1: zweibeiniger Humanoid für Industrie & Haushalt. MAiRA & LARA: kollaborative Arme.",
+   note:"4NE-1 Mini & Quadruped auf CES 2026",url:"https://neura-robotics.com"},
+  {id:1,name:"Agile Robots SE",robot:"Diana 7 · Humanoid",region:"EU",flag:"🇩🇪",city:"München, DE",lat:48.158,lng:11.598,
+   img:"https://agile-robots.com/media/_processed_/d/4/csm_AgileRobots-Diana-7-Header-Mobile_fe76e6e464.jpg",ph:"⚙️",stage:"both",types:["arm","humanoid"],
+   founded:"2018",employees:"k.A.",funding:"$220 Mio. (SoftBank)",
+   desc:"Münchner Unicorn. Diana 7: 7-Achs-Arm in Serie. Erster industrieller Humanoid Nov 2025, Hannover Messe 2026.",
+   note:"Tochter idealworks für AMR-Intralogistik",url:"https://agile-robots.com"},
+  {id:2,name:"ANYbotics",robot:"ANYmal D",region:"EU",flag:"🇨🇭",city:"Zürich, CH",lat:47.376,lng:8.541,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Anymal-robot-inspection-power-grid.jpg/600px-Anymal-robot-inspection-power-grid.jpg",ph:"🐾",stage:"production",types:["quadruped"],
+   founded:"2016",employees:"~150",funding:"$50 Mio. Series B",
+   desc:"ETH-Spinoff. ANYmal D: autonomer Vierbein-Inspektionsroboter für Öl & Gas, Chemie, Bergbau. IEEE Innovation Award 2022.",
+   note:"Quadruped — kein Humanoid",url:"https://anybotics.com"},
+  {id:3,name:"1X Technologies",robot:"NEO · EVE",region:"EU",flag:"🇳🇴",city:"Moss, NO",lat:59.435,lng:10.658,
+   img:"https://cdn.sanity.io/images/qka6yvsc/production/9840f02d5ae03f52b20b1f13c6a0e9ae222c69ce-3813x4096.webp?w=400&h=400&fit=crop&crop=center&auto=format",ph:"🦾",stage:"production",types:["humanoid"],
+   founded:"2014",employees:"k.A.",funding:"$100 Mio. (OpenAI, EQT)",
+   desc:"OpenAI-backed. NEO: zweibeiniger Heim-Humanoid, $20k/$499 Abo, 25 DOF Hände, Lieferung 2026. EVE: radbasiert für Industrie.",
+   note:"HQ auch in Palo Alto, CA",url:"https://1x.tech"},
+  {id:4,name:"PAL Robotics",robot:"TALOS · TIAGo",region:"EU",flag:"🇪🇸",city:"Barcelona, ES",lat:41.395,lng:2.185,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/TIAGo%2B%2B_side.jpg/600px-TIAGo%2B%2B_side.jpg",ph:"🧠",stage:"both",types:["humanoid","mobile"],
+   founded:"2004",employees:"k.A.",funding:"Nicht öffentlich",
+   desc:"Ältester EU-Humanoid-Hersteller. TALOS: 1,75 m Forschungshumanoid (ROS). TIAGo: mobiler Serviceassistent.",
+   note:null,url:"https://pal-robotics.com"},
+  {id:5,name:"Engineered Arts",robot:"Ameca",region:"EU",flag:"🇬🇧",city:"Cornwall, UK",lat:50.169,lng:-5.102,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Ameca_Generation_1.jpg/600px-Ameca_Generation_1.jpg",ph:"😮",stage:"production",types:["humanoid"],
+   founded:"2004",employees:"k.A.",funding:"Nicht öffentlich",
+   desc:"Ameca: realistischste Gesichtsmimik weltweit — 17 Gesichtsaktoren, GPT-4 integriert. Kein Zweibeingang, Fokus soziale Interaktion.",
+   note:"Mietmodell · Viral nach CES 2022",url:"https://engineeredarts.co.uk"},
+  {id:6,name:"Tesla — Optimus",robot:"Optimus Gen 2",region:"US",flag:"🇺🇸",city:"Austin, TX",lat:30.267,lng:-97.743,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Optimus_bot_at_Tesla_showroom_-_20251118_-_01.jpg/600px-Optimus_bot_at_Tesla_showroom_-_20251118_-_01.jpg",ph:"⚡",stage:"production",types:["humanoid"],
+   founded:"Angekündigt 2021",employees:"k.A.",funding:"Tesla ~$1 Billion intern",
+   desc:"1,73 m, 57 kg. Gen 2: 11 DOF Hände. Geplanter Preis ~$30k. >1.000 Einheiten in Tesla-Werken. Autopilot-KI auf Körper übertragen.",
+   note:"Gen 3: geplant 22 DOF",url:"https://tesla.com/optimus"},
+  {id:7,name:"Figure AI",robot:"Figure 03",region:"US",flag:"🇺🇸",city:"San Jose, CA",lat:37.338,lng:-121.886,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Figure-ai-logo.svg/600px-Figure-ai-logo.svg.png",ph:"🤖",stage:"production",types:["humanoid"],
+   founded:"2022",employees:"~600",funding:"$1 Mrd.+ Series C (Sep 2025)",
+   desc:"Bewertung $39 Mrd. Figure 03: 5,5 Fuß, 60 DOF. 740 Roboter im Einsatz. KI-Modell Helix. BMW-Partnerschaft.",
+   note:"Investoren: Microsoft, OpenAI, Amazon, Nvidia",url:"https://figure.ai"},
+  {id:8,name:"Boston Dynamics",robot:"Atlas · Spot",region:"US",flag:"🇺🇸",city:"Waltham, MA",lat:42.377,lng:-71.236,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Atlas_during_testing.jpg/600px-Atlas_during_testing.jpg",ph:"🏃",stage:"production",types:["humanoid","quadruped"],
+   founded:"1992 (MIT)",employees:"k.A.",funding:"Hyundai ~$1,1 Mrd. (2020)",
+   desc:"Pionier. Atlas: vollelektrisch seit April 2024, in Hyundai-Werken. Spot: Quadruped $74.500, weltweit kommerziell.",
+   note:"80% Hyundai Motor Group",url:"https://bostondynamics.com"},
+  {id:9,name:"Field AI",robot:"Field Foundation Model",region:"US",flag:"🇺🇸",city:"Los Angeles, CA",lat:34.052,lng:-118.244,
+   img:null,ph:"🌐",stage:"research",types:["platform"],
+   founded:"2023",employees:"k.A.",funding:"~$32 Mio. (2024)",
+   desc:"Ex-NASA/JPL. KI-Basismodell für Roboter in unstrukturierten Umgebungen ohne GPS und Mapping. Keine eigene Hardware.",
+   note:"Software/KI-Plattform",url:"https://fieldai.com"},
+  {id:10,name:"Tesla — Engineering DE",robot:"Optimus (Forschung)",region:"EU",flag:"🇩🇪",city:"Stuttgart, DE",lat:48.776,lng:9.183,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Optimus_bot_at_Tesla_showroom_-_20251118_-_01.jpg/600px-Optimus_bot_at_Tesla_showroom_-_20251118_-_01.jpg",ph:"⚡",stage:"research",types:["humanoid"],
+   founded:"2019 (Grohmann→Tesla)",employees:"k.A.",funding:"Tesla intern",
+   desc:"Teslas europäisches Engineering-Zentrum in Baden-Württemberg. Forschung an Fertigungsautomatisierung und Humanoid-Robotik (Optimus) für den europäischen Markt.",
+   note:"Produktion: Austin TX & Gigafactory Berlin",url:"https://tesla.com/optimus"},
+  {id:11,name:"AgiBot",robot:"A2 · X2 · G2",region:"CN",flag:"🇨🇳",city:"Shanghai, CN",lat:31.230,lng:121.474,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/AGIBOT-X2-_by_JxFile_MWC26.jpg/600px-AGIBOT-X2-_by_JxFile_MWC26.jpg",ph:"🤖",stage:"production",types:["humanoid","arm"],
+   founded:"Feb 2023",employees:"k.A.",funding:"HongShan, Hillhouse, BYD",
+   desc:"Ex-Huawei. A2: 1,75 m, 55 kg, fädelt Nadeln ein. X2: Flaggschiff, MWC 2026. G2: Industriearm. X1 Open Source.",
+   note:">1.000 Einheiten Jan 2025",url:"https://agibot.com"},
+  {id:12,name:"Unitree Robotics",robot:"H1 · G1 · Go2 · B2",region:"CN",flag:"🇨🇳",city:"Hangzhou, CN",lat:30.274,lng:120.155,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Unitree_G1.jpg/600px-Unitree_G1.jpg",ph:"🐾",stage:"production",types:["humanoid","quadruped"],
+   founded:"2016",employees:"k.A.",funding:"ca. $100 Mio.",
+   desc:"Weltweiter Marktführer günstiger Roboter. Go2: ab $1.600. H1: Humanoid $90k. G1: Humanoid $16k — disruptiert den Markt durch extrem niedrige Preise.",
+   note:"Go1/Go2 weltweit meistverkauft",url:"https://unitree.com"},
+  {id:13,name:"Agility Robotics",robot:"Digit",region:"US",flag:"🇺🇸",city:"Salem, OR",lat:44.942,lng:-123.035,
+   img:"https://cdn.prod.website-files.com/68d6ca150ffa11fdc25d7575/6aa6c3fbd90e0d765ae6afc3_Solutions.avif",ph:"🦿",stage:"production",types:["humanoid"],
+   founded:"2015",employees:"~200",funding:"$150 Mio. (Amazon, DCVC)",
+   desc:"Digit: zweibeiniger Logistikroboter, 1,75 m, 64 kg. Amazon-Partnerschaft in Fulfillment Centers. RoboFab Salem: erste Humanoid-Serienfertigung weltweit.",
+   note:"Amazon seit 2023 Mehrheitseigner",url:"https://agilityrobotics.com"},
+  {id:14,name:"UBTECH Robotics",robot:"Walker X · BRI",region:"CN",flag:"🇨🇳",city:"Shenzhen, CN",lat:22.543,lng:114.057,
+   img:"https://owebsite-cdn.ubtrobot.com/en/uploadfiles/products/WalkerX/WalkerXNew.jpg",ph:"🚶",stage:"production",types:["humanoid"],
+   founded:"2012",employees:">1.000",funding:"$820 Mio. Series C (~$5 Mrd. Bewertung)",
+   desc:"Ältestes großes chinesisches Humanoid-Startup. Walker X: 1,7 m, 77 kg, 41 DOF. BRI: Industriegeneration 2025 in Serienfabriken.",
+   note:"Börsengang Hongkong geplant",url:"https://ubtrobot.com"},
+  {id:15,name:"Apptronik",robot:"Apollo",region:"US",flag:"🇺🇸",city:"Austin, TX",lat:30.250,lng:-97.770,
+   img:null,ph:"🤖",stage:"production",types:["humanoid"],
+   founded:"2016",employees:"~200",funding:"$350 Mio. Series A (Samsung, Mercedes-Benz)",
+   desc:"UT Austin Spinoff. Apollo: 1,73 m, 73 kg, 30 DOF, 25 kg Payload, 4h Akku. Einsatz bei Mercedes-Benz, GXO Logistics, NASA.",
+   note:"NASA-Kooperation: Weltraumanwendungen",url:"https://apptronik.com"},
+  {id:16,name:"Fourier Intelligence",robot:"GR-1 · GR-2",region:"CN",flag:"🇨🇳",city:"Shanghai, CN",lat:31.248,lng:121.510,
+   img:null,ph:"🤖",stage:"production",types:["humanoid"],
+   founded:"2015",employees:"k.A.",funding:"ca. $40 Mio.",
+   desc:"GR-1: erster kommerziell erhältlicher Humanoid Chinas (2023). 1,65 m, 55 kg, 23 DOF, ~$58k. Ursprung: Rehab-Exoskelette.",
+   note:"Auch Rehabilitations-Exoskelette",url:"https://fftai.com"},
+  {id:17,name:"Enchanted Tools",robot:"Mirokaï",region:"EU",flag:"🇫🇷",city:"Paris, FR",lat:48.857,lng:2.352,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Robot_Enchanted_tools_-_CES_2025_Las_Vegas.jpg/600px-Robot_Enchanted_tools_-_CES_2025_Las_Vegas.jpg",ph:"🎭",stage:"research",types:["humanoid","mobile"],
+   founded:"2021",employees:"~100",funding:"€25 Mio. (BPI France)",
+   desc:"Mirokaï: expressiver Rollhumanoid für Pflege & Gesundheit. Menschlicher Oberkörper auf Rädern. Fokus emotionale Interaktion, Altenpflege.",
+   note:"Rollhumanoid — kein Zweibeingang",url:"https://enchanted.tools"},
+  {id:18,name:"XPeng Robotics",robot:"Iron (PX5)",region:"CN",flag:"🇨🇳",city:"Guangzhou, CN",lat:23.130,lng:113.264,
+   img:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/XPeng_Iron_at_Auto_Guangzhou_2025_20251123.jpg/600px-XPeng_Iron_at_Auto_Guangzhou_2025_20251123.jpg",ph:"🚗",stage:"research",types:["humanoid"],
+   founded:"2023",employees:"k.A.",funding:"XPeng Inc. intern (~$100 Mio.)",
+   desc:"Ausgründung von EV-Hersteller XPENG. Iron/PX5: 1,78 m, 70 kg, autonome Navigation. Einsatz in XPENG-Produktion 2025 geplant.",
+   note:"EV-Hersteller expandiert in Robotik",url:"https://xpeng.com"},
+  {id:19,name:"Xiaomi",robot:"CyberOne · CyberDog 2",region:"CN",flag:"🇨🇳",city:"Peking, CN",lat:39.916,lng:116.397,
+   img:null,ph:"📱",stage:"research",types:["humanoid","quadruped"],
+   founded:"Robotics: 2022",employees:"k.A.",funding:"Xiaomi intern",
+   desc:"CyberOne: 1,77 m Vollmetall-Humanoid mit AI-Emotionserkennung, Aug 2022 vorgestellt. CyberDog 2: Quadruped, 19 DOF. Forschungs- und PR-Projekte.",
+   note:"Noch keine Kommerzialisierung",url:"https://mi.com"},
+  {id:20,name:"Clone Robotics",robot:"Protoclone",region:"EU",flag:"🇵🇱",city:"Warschau, PL",lat:52.229,lng:21.012,
+   img:"https://clonerobotics.com/_ipx/f_webp&q_95&s_3840x2160/assets/img/home/Panel2_android.png",ph:"🦾",stage:"research",types:["humanoid"],
+   founded:"2021",employees:"~60",funding:"$6,8 Mio.",
+   desc:"Protoclone: myoelektrische Muskeln statt Motoren — künstliche McKibben-Hydraulik-Aktoren. 164 DOF, innovativster biomechanischer Ansatz weltweit.",
+   note:"Erster vollständig myo-elektrischer Humanoid",url:"https://clonerobotics.com"}
+];
+
+// ── Reference points (not in card list) ──────────────────────────────────────
+var REFS=[
+  {id:'walldorf',label:'SAP · Walldorf',icon:'🏢',lat:49.305,lng:8.645,
+   popup:'SAP SE — Walldorf, Baden-Württemberg<br><small style="color:#475569">Referenzstandort</small>'}
+];
+
+// ── State ──────────────────────────────────────────────────────────────────────
+var AF={region:'all',stage:'all',type:'all'};
+var activeId=null;
+var mList=[];
+var cityEls=[]; // {dot, label, lng, lat, svgY} — for position updates on resize/zoom
+var d3proj=null, d3zoom_behavior=null, d3svg_sel=null, d3g_sel=null;
+var currentTransform={k:1,x:0,y:0};
+
+// ── Card list (no D3 needed) ──────────────────────────────────────────────────
+var cardList=document.getElementById('card-list');
+
+function buildCard(c){
+  var st=SM[c.stage];
+  var rCls='tag-'+c.region.toLowerCase();
+  var tBadges=c.types.map(function(t){var m=TM[t];return m?'<span class="tag tag-type">'+m.icon+'</span>':'';}).join('');
+  var div=document.createElement('div');
+  div.className='rc '+c.region.toLowerCase()+'-card';
+  div.id='card-'+c.id;
+  if(c.img){
+    div.innerHTML='<div class="rc-img"><img src="'+c.img+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'" alt=""><div style="display:none;width:100%;height:100%;align-items:center;justify-content:center"><span class="rph">'+c.ph+'</span></div></div>';
+  } else {
+    div.innerHTML='<div class="rc-img"><span class="rph">'+c.ph+'</span></div>';
+  }
+  div.innerHTML+='<div class="rc-body"><div class="rc-name">'+c.flag+' '+c.name+'</div><div class="rc-robot">'+c.robot+'</div><div class="rc-tags"><span class="tag '+st.cls+'">'+st.icon+' '+st.label+'</span>'+tBadges+'</div><div class="rc-city">📍 '+c.city+'</div></div>';
+  div.addEventListener('click',function(){selectCompany(c,true);});
+  return div;
+}
+CO.forEach(function(c){cardList.appendChild(buildCard(c));});
+updateCount();
+
+// ── Detail panel ──────────────────────────────────────────────────────────────
+function showDetail(c){
+  var iw=document.getElementById('d-imgwrap');
+  var db=document.getElementById('d-body');
+  var st=SM[c.stage];
+  var rCls='tag-'+c.region.toLowerCase();
+  var tBadges=c.types.map(function(t){var m=TM[t];return m?'<span class="tag tag-type">'+m.icon+' '+m.label+'</span>':'';}).join('');
+  iw.innerHTML=c.img
+    ?'<img class="d-img" src="'+c.img+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'" alt=""><div class="d-img-ph" style="display:none">'+c.ph+'</div>'
+    :'<div class="d-img-ph">'+c.ph+'</div>';
+  db.innerHTML='<div class="d-top"><div><div class="d-name">'+c.name+'</div><div class="d-robot">'+c.robot+'</div></div><button class="d-close" onclick="closeDetail()">✕</button></div>'
+    +'<div class="d-tags"><span class="tag '+rCls+'">'+c.flag+' '+c.city+'</span><span class="tag '+st.cls+'">'+st.icon+' '+st.label+'</span>'+tBadges+'</div>'
+    +'<div class="d-desc">'+c.desc+'</div>'
+    +'<div class="d-facts"><div class="fact"><div class="fact-l">Gegründet</div><div class="fact-v">'+c.founded+'</div></div><div class="fact"><div class="fact-l">Mitarbeiter</div><div class="fact-v">'+c.employees+'</div></div></div>'
+    +'<div class="d-fund"><strong>Finanzierung:</strong> '+c.funding+'</div>'
+    +(c.note?'<div class="d-note">'+c.note+'</div>':'')
+    +'<a class="d-link" href="'+c.url+'" target="_blank" rel="noopener">Website ↗</a>';
+  document.getElementById('detail').classList.add('open');
+}
+function closeDetail(){document.getElementById('detail').classList.remove('open');}
+
+// ── Select ────────────────────────────────────────────────────────────────────
+function selectCompany(c, fromCard){
+  document.querySelectorAll('.rc').forEach(function(el){el.classList.remove('active');});
+  document.querySelectorAll('.mwrap').forEach(function(el){el.classList.remove('sel');});
+  var card=document.getElementById('card-'+c.id);
+  if(card){card.classList.add('active');if(!fromCard)card.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  var mk=document.getElementById('mk-'+c.id);
+  if(mk) mk.classList.add('sel');
+  showDetail(c);
+  if(fromCard && d3proj) mapFlyTo(c.lat, c.lng, 5);
+  activeId=c.id;
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+function sf(group,val,el){
+  el.parentElement.querySelectorAll('.f-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+  AF[group]=val;
+  applyFilters();
+  if(d3proj && group==='region'){
+    if(val==='EU') mapFlyTo(50,10,4);
+    else if(val==='US') mapFlyTo(39,-97,3.5);
+    else if(val==='CN') mapFlyTo(31,121,4.5);
+    else mapReset();
+  }
+}
+function applyFilters(){
+  var r=AF.region,s=AF.stage,t=AF.type;
+  CO.forEach(function(c){
+    var show=true;
+    if(r!=='all'&&c.region!==r) show=false;
+    if(s==='both'&&c.stage!=='both') show=false;
+    else if(s==='production'&&c.stage!=='production'&&c.stage!=='both') show=false;
+    else if(s==='research'&&c.stage!=='research'&&c.stage!=='both') show=false;
+    if(t!=='all'&&!c.types.includes(t)) show=false;
+    var card=document.getElementById('card-'+c.id);
+    if(card) card.style.display=show?'':'none';
+    var mk=document.getElementById('mk-'+c.id);
+    if(mk) mk.style.display=show?'':'none';
+  });
+  updateCount();
+}
+function updateCount(){
+  var vis=CO.filter(function(c){var card=document.getElementById('card-'+c.id);return card&&card.style.display!=='none';}).length;
+  document.getElementById('cl-count').textContent=vis+' von '+CO.length+' Unternehmen';
+}
+
+// ── D3 Map ────────────────────────────────────────────────────────────────────
+function initD3Map(){
+  var panel=document.getElementById('map-panel');
+  var W=panel.offsetWidth, H=panel.offsetHeight;
+  var overlay=document.getElementById('map-overlay');
+  var tooltip=document.getElementById('tooltip');
+
+  // Projection — Equal Earth (maßstabsgetreue Flächen)
+  // Explicit scale/translate (more reliable than fitExtent on all browsers)
+  // At D3 scale=1: world spans x∈[-π,+π] (width≈6.28), y∈[-1.56,+1.56] (height≈3.12)
+  var _s=Math.min((W-20)/6.28,(H-20)/3.12);
+  d3proj=d3.geoEqualEarth().scale(_s).translate([W/2,H/2]);
+
+  var pathGen=d3.geoPath().projection(d3proj);
+
+  d3svg_sel=d3.select('#map-svg').attr('width',W).attr('height',H);
+  d3g_sel=d3svg_sel.append('g');
+
+  // Ocean sphere
+  d3g_sel.append('path').datum({type:'Sphere'}).attr('class','sphere').attr('d',pathGen);
+
+  // Graticule
+  d3g_sel.append('path').datum(d3.geoGraticule()()).attr('class','graticule').attr('d',pathGen);
+
+  // Countries from CDN
+  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+    .then(function(r){return r.json();})
+    .then(function(world){
+      var cFeatures=topojson.feature(world,world.objects.countries).features;
+      d3g_sel.selectAll('.country')
+        .data(cFeatures)
+        .enter().append('path').attr('class','country').attr('d',pathGen);
+      d3g_sel.append('path')
+        .datum(topojson.mesh(world,world.objects.countries,function(a,b){return a!==b;}))
+        .attr('class','border').attr('d',pathGen);
+      // Country name labels at centroids
+      d3g_sel.selectAll('.country-label')
+        .data(cFeatures.filter(function(d){return COUNTRY_NAMES[+d.id];}))
+        .enter().append('text').attr('class','country-label')
+        .attr('x',function(d){var xy=d3proj(d3.geoCentroid(d));return xy?xy[0]:0;})
+        .attr('y',function(d){var xy=d3proj(d3.geoCentroid(d));return xy?xy[1]:0;})
+        .text(function(d){return COUNTRY_NAMES[+d.id]||'';})
+        .attr('font-size',9).attr('display','none');
+      // City dots + labels — store refs so resize can reposition them
+      cityEls=[];
+      CITIES.forEach(function(city){
+        var xy=d3proj([city.lng,city.lat]);
+        if(!xy||isNaN(xy[0])) return;
+        var dot=d3g_sel.append('circle').attr('class','city-dot')
+          .attr('cx',xy[0]).attr('cy',xy[1]).attr('r',2.5).attr('display','none');
+        var label=d3g_sel.append('text').attr('class','city-label')
+          .attr('x',xy[0]).attr('y',xy[1]-5).text(city.n)
+          .attr('text-anchor','middle').attr('font-size',7).attr('display','none');
+        cityEls.push({dot:dot,label:label,lng:city.lng,lat:city.lat,svgY:xy[1]});
+      });
+    })
+    .catch(function(){
+      // fallback: just sphere + graticule visible, markers still work
+    });
+
+  // Zoom behavior
+  d3zoom_behavior=d3.zoom()
+    .scaleExtent([0.5,120])
+    .on('zoom',function(event){
+      currentTransform=event.transform;
+      d3g_sel.attr('transform',event.transform);
+      updateMarkerPositions();
+      var k=event.transform.k;
+      d3g_sel.selectAll('.country-label').attr('font-size',9/k).attr('display',k>1.4?'':'none');
+      d3g_sel.selectAll('.city-dot').attr('r',2.5/k).attr('display',k>3.5?'':'none');
+      // Keep label y offset a constant ~5 screen-px above dot regardless of zoom
+      var labelOffset=5/k;
+      cityEls.forEach(function(e){
+        e.label.attr('font-size',7/k).attr('y',e.svgY-labelOffset).attr('display',k>3.5?'':'none');
+      });
+    });
+  d3svg_sel.call(d3zoom_behavior).on('dblclick.zoom',null);
+
+  // Place company markers
+  CO.forEach(function(c){
+    var div=document.createElement('div');
+    div.className='mwrap '+(c.region==='EU'?'eu':c.region==='US'?'us':'cn');
+    div.id='mk-'+c.id;
+    var sdCls=c.stage==='production'?'prod':c.stage==='research'?'res':'both';
+    var pills=c.types.map(function(t){var m=TM[t];return m?'<span class="tp '+m.cls+'" title="'+m.label+'">'+m.icon+'</span>':'';}).join('');
+    var img=c.img?'<img src="'+c.img+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'" alt=""><div class="mph" style="display:none">'+c.ph+'</div>'
+                 :'<div class="mph">'+c.ph+'</div>';
+    div.innerHTML='<div class="mcircle">'+img+'<div class="sdot '+sdCls+'"></div></div>'
+                 +'<div class="tpills">'+pills+'</div>';
+    div.addEventListener('click',function(e){e.stopPropagation();selectCompany(c,false);});
+    div.addEventListener('mouseenter',function(e){
+      document.getElementById('tt-name').textContent=c.flag+' '+c.name;
+      document.getElementById('tt-robot').textContent=c.robot;
+      tooltip.className='mtooltip show';
+    });
+    div.addEventListener('mousemove',function(e){
+      tooltip.style.left=(e.clientX-panel.getBoundingClientRect().left+12)+'px';
+      tooltip.style.top=(e.clientY-panel.getBoundingClientRect().top-30)+'px';
+    });
+    div.addEventListener('mouseleave',function(){tooltip.className='mtooltip';});
+    overlay.appendChild(div);
+    mList.push({c:c,el:div});
+  });
+
+  // Place reference markers
+  REFS.forEach(function(r){
+    var div=document.createElement('div');
+    div.className='mwrap ref';
+    div.id='mkref-'+r.id;
+    div.innerHTML='<div class="mcircle" style="font-size:.9rem">'+r.icon+'</div><div class="ref-label">'+r.label+'</div>';
+    div.title=r.label;
+    overlay.appendChild(div);
+    mList.push({c:{id:'ref_'+r.id,lat:r.lat,lng:r.lng},el:div,isRef:true});
+  });
+
+  updateMarkerPositions();
+
+  // Resize
+  window.addEventListener('resize',function(){
+    var W2=panel.offsetWidth,H2=panel.offsetHeight;
+    d3svg_sel.attr('width',W2).attr('height',H2);
+    var _s2=Math.min((W2-20)/6.28,(H2-20)/3.12);
+    d3proj=d3.geoEqualEarth().scale(_s2).translate([W2/2,H2/2]);
+    pathGen=d3.geoPath().projection(d3proj);
+    d3g_sel.selectAll('path').attr('d',pathGen);
+    // Reposition country labels (have datum attached)
+    d3g_sel.selectAll('.country-label')
+      .attr('x',function(d){var xy=d3proj(d3.geoCentroid(d));return xy?xy[0]:0;})
+      .attr('y',function(d){var xy=d3proj(d3.geoCentroid(d));return xy?xy[1]:0;});
+    // Reposition city dots + labels
+    cityEls.forEach(function(e){
+      var xy=d3proj([e.lng,e.lat]);
+      if(!xy||isNaN(xy[0])) return;
+      e.svgY=xy[1];
+      e.dot.attr('cx',xy[0]).attr('cy',xy[1]);
+      e.label.attr('x',xy[0]).attr('y',xy[1]-5);
+    });
+    updateMarkerPositions();
+  });
+
+  // Pan on click background
+  d3svg_sel.on('click',function(e){
+    if(e.target===d3svg_sel.node()||e.target.classList.contains('country')||e.target.classList.contains('sphere')||e.target.classList.contains('graticule')){
+      closeDetail();
+      document.querySelectorAll('.rc').forEach(function(el){el.classList.remove('active');});
+      document.querySelectorAll('.mwrap').forEach(function(el){el.classList.remove('sel');});
+    }
+  });
+}
+
+function updateMarkerPositions(){
+  var ct=currentTransform;
+  mList.forEach(function(m){
+    var xy=d3proj([m.c.lng,m.c.lat]);
+    if(!xy) return;
+    var sx=xy[0]*ct.k+ct.x;
+    var sy=xy[1]*ct.k+ct.y;
+    m.el.style.left=sx+'px';
+    m.el.style.top=sy+'px';
+  });
+}
+
+// Zoom controls
+function mapZoomIn(){ d3svg_sel.transition().duration(350).call(d3zoom_behavior.scaleBy,1.6); }
+function mapZoomOut(){ d3svg_sel.transition().duration(350).call(d3zoom_behavior.scaleBy,0.625); }
+function mapReset(){
+  var panel=document.getElementById('map-panel');
+  var W=panel.offsetWidth,H=panel.offsetHeight;
+  d3svg_sel.transition().duration(700).call(
+    d3zoom_behavior.transform,
+    d3.zoomIdentity
+  );
+}
+function mapFlyTo(lat,lng,scale){
+  if(!d3proj||!d3svg_sel) return;
+  var panel=document.getElementById('map-panel');
+  var W=panel.offsetWidth,H=panel.offsetHeight;
+  var xy=d3proj([lng,lat]);
+  var T=d3.zoomIdentity.translate(W/2,H/2).scale(scale).translate(-xy[0],-xy[1]);
+  d3svg_sel.transition().duration(900).call(d3zoom_behavior.transform,T);
+}
+
+// Load D3 + topojson from cdnjs
+(function(){
+  var s1=document.createElement('script');
+  s1.src='https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js';
+  s1.onload=function(){
+    var s2=document.createElement('script');
+    s2.src='https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js';
+    s2.onload=initD3Map;
+    s2.onerror=function(){
+      // topojson failed — can still show markers without country outlines
+      // Provide minimal stub
+      window.topojson={feature:function(){return{features:[]};},mesh:function(){return{type:'MultiLineString',coordinates:[]};}};
+      initD3Map();
+    };
+    document.head.appendChild(s2);
+  };
+  s1.onerror=function(){
+    document.getElementById('map-panel').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#334155;flex-direction:column;gap:8px"><div style="font-size:2rem">🗺️</div><div>D3.js CDN nicht erreichbar</div><div style="font-size:.65rem">Kartenliste rechts funktioniert</div></div>';
+  };
+  document.head.appendChild(s1);
+})();
+</script>
+</body>
+</html>
