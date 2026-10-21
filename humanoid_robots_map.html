@@ -371,7 +371,7 @@ var REFS=[
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function flagImg(e){
   var cc=[...e].map(function(c){return String.fromCharCode(c.codePointAt(0)-0x1F1A5);}).join('').toLowerCase();
-  return '<img src="https://flagcdn.com/20x15/'+cc+'.png" width="20" height="15" style="vertical-align:middle;border-radius:1px;display:inline;margin-right:2px" alt="'+e+'">';
+  return '<img src="https://flagcdn.com/16x12/'+cc+'.png" style="height:.85em;width:auto;vertical-align:middle;border-radius:1px;display:inline;margin-right:2px" alt="'+e+'">';
 }
 
 // ── State ──────────────────────────────────────────────────────────────────────
